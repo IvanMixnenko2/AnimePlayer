@@ -1,34 +1,75 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 * {
     margin: 0;
-    color: #161219;
+    color: var(--text-color);
     font-family: "Inter";
 }
 body {
     background: #fbe6fc;
+    --bg-section-color: #faf2ff;
+    --bg-component-color: #eac5ec;
+    --text-color: #161219;
+    --shadow-color: #eac5ec;
+}
+body.dark-theme {
+    background: #1d1920;
+    --bg-section-color: #161219;
+    --bg-component-color: #4a294a;
+    --text-color: #faf2ff;
+    --shadow-color: #161219;
 }
 
 .video-settings {
     margin-bottom: 40px;
 }
 .videoplayer-container {
-    background: #faf2ff;
+    background: var(--bg-section-color);
     padding: 20px 0 20px 0;
     border-radius: 20px;
-    box-shadow: 0 0 10px #c35fbe4d;
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+.theme-container {
+    display: flex;
+    width: 100%;
+    justify-content: end;
+}
+.toggle-theme {
+    width: 40px;
+    height: 40px;
+    background-color: var(--bg-component-color);
+    border: none;
+    border-radius: 8px;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (hover: hover) {
+    .toggle-theme:hover {
+        background: #c35fbe2d;
+    }
+}
+@media (hover: none) {
+    .toggle-theme:active {
+        background: #c35fbe26;
+    }
+}
+.toggle-theme:active {
+    background: #c35fbe26;
 }
 .search-field {
-    background: #faf2ff;
+    background: var(--bg-section-color);
     padding: 10px;
     border-radius: 0px 0px 20px 20px;
-    box-shadow: 0 0 10px #c35fbe4d;
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 .search-input {
     height: 40px;
     font-size: medium;
     width: 100%;
     border: none;
-    background: #c35fbe4d;
+    background: var(--bg-component-color);
     border-radius: 10px;
     outline: none;
     margin-bottom: 3px;
@@ -38,7 +79,7 @@ body {
 .search-input:-webkit-autofill,
 .search-input:-webkit-autofill:hover,
 .search-input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #161219;
+    -webkit-text-fill-color: var(--text-color);
     -webkit-box-shadow: 0 0 0px 1000px transparent inset;
     transition: background-color 5000s ease-in-out 0s;
 }
@@ -46,7 +87,7 @@ body {
 .search-field ul {
     max-height: 300px;
     overflow: auto;
-    background: #faf2ff;
+    background: var(--bg-section-color);
     border-radius: 10px;
 }
 
@@ -60,8 +101,8 @@ body {
     text-align: left;
     min-height: 30px;
     border: none;
-    border-bottom: 2px solid #c35fbe4d;
-    background: #faf2ff;
+    border-bottom: 2px solid var(--bg-component-color);
+    background: var(--bg-section-color);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -75,11 +116,11 @@ body {
 }
 @media (hover: none) {
     .list-item-button:active {
-        background: #c35fbe4d;
+        background: var(--bg-component-color);
     }
 }
 .list-item-button:active {
-    background: #c35fbe4d;
+    background: var(--bg-component-color);
 }
 .search-item-poster {
     width: 30px;
@@ -90,10 +131,10 @@ body {
     gap: 10px;
     margin-top: 20px;
     flex-wrap: wrap;
-    background: #faf2ff;
+    background: var(--bg-section-color);
     padding: 10px;
     border-radius: 20px;
-    box-shadow: 0 0 10px #c35fbe4d;
+    box-shadow: 0 0 10px var(--shadow-color);
     margin-bottom: 20px;
 }
 .anime-info {
@@ -102,7 +143,7 @@ body {
 .anime-info-img-container {
     width: 175px;
     height: 247px;
-    background-color: #c35fbe4d;
+    background-color: var(--bg-component-color);
     display: flex;
     position: relative;
     border-radius: 10px;
@@ -112,10 +153,10 @@ body {
     width: 100%;
 }
 .translations-field {
-    background: #faf2ff;
+    background: var(--bg-section-color);
     padding: 10px;
     border-radius: 20px;
-    box-shadow: 0 0 10px #c35fbe4d;
+    box-shadow: 0 0 10px var(--shadow-color);
     margin-bottom: 20px;
 }
 .translations-field ul {
@@ -126,10 +167,10 @@ body {
     padding-left: 8px;
 }
 .seria-field {
-    background: #faf2ff;
+    background: var(--bg-section-color);
     padding: 10px;
     border-radius: 20px;
-    box-shadow: 0 0 10px #c35fbe4d;
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 .series {
     max-height: 300px;
@@ -142,7 +183,7 @@ body {
     width: 80px;
     height: 30px;
     border: none;
-    border: 2px solid #c35fbe4d;
+    border: 2px solid var(--bg-component-color);
     border-radius: 5px;
     background: #ff5686;
     color: #faf2ff;
