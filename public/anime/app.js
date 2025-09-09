@@ -192,8 +192,11 @@ function forceInputStylesUpdate() {
     });
 }
 
-const currentTheme = window.localStorage.getItem("theme");
 document.addEventListener("DOMContentLoaded", () => {
+    const currentTheme = window.localStorage.getItem("theme");
+    if (!currentTheme) {
+        window.localStorage.setItem("theme", "light");
+    }
     if (currentTheme == "light") {
         toggleTheme.innerHTML = darkSvg;
     } else if (currentTheme == "dark") {
