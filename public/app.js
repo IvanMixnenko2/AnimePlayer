@@ -44,7 +44,7 @@ function renderResultsList(response) {
         poster.className = "search-item-poster";
         const title = document.createElement("div");
         title.textContent = results[i].title;
-        poster.src = results[i].material_data.anime_poster_url;
+        poster.src = results[i].poster;
         setAnime.className = "list-item-button";
         setAnime.id = i;
         setAnime.addEventListener("click", () => {
@@ -64,9 +64,9 @@ async function ChooseAnime(results) {
     const shikimori_id = results.shikimori_id;
     seriaData.shikimoriId = shikimori_id;
     AnimeInfoTitle.textContent = results.title;
-    AnimeInfoImg.src = results.material_data.anime_poster_url;
+    AnimeInfoImg.src = results.poster;
 
-    if (results.material_data.anime_kind == "movie") {
+    if (results.type == "Фильм") {
         seriaData.seriaNum = 0;
         SeriaTitle.textContent = "Серия: Фильм";
     }
@@ -75,10 +75,18 @@ async function ChooseAnime(results) {
         const resinfo = await fetch(
             `/api/anime/info?shikimori_id=${shikimori_id}`
         );
+
         const data = await resinfo.json();
         const info = data.response;
-
         console.log(info);
+        if (info.error) {
+            console.log(info.error);
+
+            TranslationsList.textContent = "";
+            renderSeriesList(0);
+            AnimeInfoTitle.textContent = `${results.title} АНИМЕ НЕ НАЙДЕНО В БАЗЕ KODIK`;
+            return;
+        }
         const fragment = document.createDocumentFragment();
         TranslationsList.textContent = "";
         for (let i = 0; i < info.translations.length; i++) {
