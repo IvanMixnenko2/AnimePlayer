@@ -135,4 +135,35 @@ export class ShikimoriParser {
         });
         return res;
     }
+
+    async getPoster(shikimoriId) {
+        const headers = {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+            Accept: "application/json, text/plain, */*",
+            "X-Requested-With": "XMLHttpRequest",
+        };
+
+        const response = await fetch(
+            `https://${this._dmn}/animes/${shikimoriId}`,
+            {
+                method: "GET",
+                headers: headers,
+            }
+        );
+        const htmlContent = await response.text();
+        const $ = load(htmlContent);
+
+        const posterBlock = $("div.b-db_entry-poster.b-image");
+        if (posterBlock.length === 0) {
+            return null;
+        }
+        const metaImg = posterBlock
+            .find('meta[itemprop="image"]')
+            .attr("content");
+        if (metaImg) {
+            return metaImg;
+        }
+        return null;
+    }
 }

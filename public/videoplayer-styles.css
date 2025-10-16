@@ -1,5 +1,6 @@
 .videoplayer-container {
     width: 100%;
+    aspect-ratio: 16 / 9;
 }
 .videoplayer {
     background-color: rgb(0, 0, 0);

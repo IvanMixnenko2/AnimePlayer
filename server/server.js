@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import { readFile, writeFile } from "fs/promises";
 import { createParser } from "@aerosstube/anime-parser-kodik-ts";
 import { ShikimoriParser } from "./shikimori-parser.js";
 
@@ -18,6 +18,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "../public")));
+
+app.get("/api/data", async (req, res) => {
+    try {
+        const readData = await readFile("./data.json", "utf8");
+        const data = JSON.parse(readData);
+        console.log(data);
+        return res.json(data);
+    } catch (err) {
+        return res.json({ error: "Ошибка получения даты", errorMessage: err });
+    }
+});
+
+app.post("/api/newdata", async (req, res) => {
+    try {
+        console.log("LOADED NEW DATA");
+
+        await writeFile("./data.json", JSON.stringify(req.body, null, 4));
+
+        res.status(200).json({
+            success: true,
+            message: "Данные обновлены",
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: err,
+        });
+    }
+});
 
 app.get("/api/anime/search", async (req, res) => {
     const uncodeTitle = req.query.title;
@@ -76,6 +105,14 @@ app.get("/api/anime/link", async (req, res) => {
     res.json({
         link: link,
         maxQuality: quality,
+    });
+});
+
+app.get("/api/anime/poster", async (req, res) => {
+    const shikimoriId = req.query.shikimori_id;
+    const posterUrl = await shikimoriParser.getPoster(shikimoriId);
+    res.json({
+        posterUrl: posterUrl,
     });
 });
 

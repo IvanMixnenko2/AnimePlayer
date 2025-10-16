@@ -9,11 +9,166 @@ const TranslationsList = document.querySelector("#translations");
 const TranslationTitle = document.querySelector("#translation-title");
 const SeriesList = document.querySelector("#series");
 const SeriaTitle = document.querySelector("#seria-title");
+const ContinueWatchingContainer = document.querySelector(
+    "#continue-watching-container"
+);
+
+let ANIME_PLAYER_DATA;
+let LOADED_DATA;
+document.addEventListener("DOMContentLoaded", async () => {
+    const data = await fetch("/api/data").then((response) => response.json());
+    ANIME_PLAYER_DATA = data;
+    LOADED_DATA = JSON.parse(JSON.stringify(data));
+    const continueWatching = ANIME_PLAYER_DATA.continueWatching;
+
+    let isNewData = false;
+    console.log(data);
+
+    if (continueWatching.length > 0) {
+        for (let i = 0; i < continueWatching.length; i++) {
+            if (continueWatching[i].viewed) {
+                const translations = await fetch(
+                    `/api/anime/info?shikimori_id=${continueWatching[i].shikimoriId}`
+                ).then(async (response) => {
+                    const data = await response.json();
+                    return data.response.translations;
+                });
+                let transName;
+                for (let tr = 0; tr < translations.length; tr++) {
+                    if (
+                        translations[tr].id ==
+                        continueWatching[i].translationsId
+                    ) {
+                        transName = translations[tr].title;
+                    }
+                }
+
+                const transSeries = transNameToEpCount(transName);
+                const lastSeria =
+                    transSeries.length > 1 ? transSeries[1] : transSeries[0];
+                console.log(continueWatching[i].seriaNum, lastSeria);
+                if (continueWatching[i].seriaNum < lastSeria) {
+                    console.log("ЕСТЬ СЛЕДУЮЩАЯ СЕРИЯ");
+                    isNewData = true;
+                    ANIME_PLAYER_DATA.continueWatching[i].seriaNum = (
+                        parseInt(continueWatching[i].seriaNum) + 1
+                    ).toString();
+                    ANIME_PLAYER_DATA.continueWatching[i].viewed = false;
+                    console.log(continueWatching[i]);
+                } else continue;
+            }
+            await createCWCard(continueWatching[i]);
+        }
+        console.log("Конец перебора списка");
+        if (isNewData) {
+            uploadData(ANIME_PLAYER_DATA);
+        }
+    } else {
+        ContinueWatchingContainer.textContent = "Ничего не найдено";
+    }
+});
+
+async function createCWCard(data) {
+    const container = document.createElement("div");
+    container.className = "continue-watching-item";
+    container.addEventListener("click", () => {});
+
+    const posterUrl = await fetch(
+        `/api/anime/poster?shikimori_id=${data.shikimoriId}`
+    ).then(async (response) => {
+        const data = await response.json();
+        return data.posterUrl;
+    });
+    let viewedPercent = 0;
+    let viewedTime = 0;
+    if (data.startedWatching) {
+        viewedTime =
+            data.timeCode.second +
+            data.timeCode.minute * 60 +
+            data.timeCode.hour * 3600;
+        viewedPercent = Math.round(
+            (viewedTime / data.timeCode.fullTimeSeconds) * 100
+        );
+    }
+    container.addEventListener("click", async () => {
+        await ChooseAnime({
+            shikimori_id: data.shikimoriId,
+            title: data.title,
+        });
+        TranslationTitle.textContent = `Озвучка: ${data.translationsName}`;
+        SeriaTitle.textContent = `Серия: ${data.seriaNum}`;
+        seriaData.shikimoriId = data.shikimoriId;
+        seriaData.seriaNum = data.seriaNum;
+        seriaData.translationId = data.translationsId;
+        seriaData.title = data.title;
+        seriaData.translationName = data.translationsName;
+        await setUrl();
+        videoS.currentTime = viewedTime;
+        console.log("set viewed");
+        videoS.scrollIntoView({ behavior: "smooth" });
+    });
+
+    container.innerHTML = `
+    <div class="continue-watching-img-container">
+        <img
+            src="${posterUrl}"
+            alt="poster"
+        />
+        <div class="img-overlay"></div>
+    </div>
+    <div class="continue-watching-item-info">
+        <div
+            class="continue-watching-item-info-title-wrapper"
+        >
+            <div class="continue-watching-item-info-title">
+                ${data.title}
+            </div>
+        </div>
+
+        <div class="continue-watching-item-info-settings">
+            <p>Серия: ${data.seriaNum}</p>
+            <p
+                class="continue-watching-item-info-translations"
+            >
+                Озвучка: ${data.translationsName}
+            </p>
+        </div>
+    </div>
+    <div class="time-state" style="background: linear-gradient(to right, #ff6792 ${viewedPercent}%, transparent ${viewedPercent}%);"></div>
+    `;
+    ContinueWatchingContainer.appendChild(container);
+}
+
+function transNameToEpCount(translation) {
+    const match = translation.match(/(\d+)[~-](\d+) эп\.\)|(\d+) эп\./);
+    if (match) {
+        if (match[1] && match[2]) {
+            return [parseInt(match[1], 10), parseInt(match[2], 10)];
+        } else if (match[3]) {
+            return [parseInt(match[3], 10)];
+        }
+    }
+}
+
+async function uploadData(data) {
+    await fetch("/api/newdata", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    }).then(async (response) => {
+        console.log(await response.json());
+    });
+}
+// SET ANIME //
 
 const seriaData = {
     shikimoriId: undefined,
     seriaNum: undefined,
     translationId: undefined,
+    title: undefined,
+    translationName: undefined,
 };
 
 function debounce(func, delay) {
@@ -63,8 +218,15 @@ async function ChooseAnime(results) {
     ChooseTranslation();
     const shikimori_id = results.shikimori_id;
     seriaData.shikimoriId = shikimori_id;
+    seriaData.title = results.title;
     AnimeInfoTitle.textContent = results.title;
-    AnimeInfoImg.src = results.poster;
+    const posterUrl = await fetch(
+        `/api/anime/poster?shikimori_id=${shikimori_id}`
+    ).then(async (response) => {
+        const data = await response.json();
+        return data.posterUrl;
+    });
+    AnimeInfoImg.src = posterUrl;
 
     if (results.type == "Фильм") {
         seriaData.seriaNum = 0;
@@ -112,6 +274,7 @@ function ChooseTranslation(translation) {
     if (translation) {
         TranslationTitle.textContent = `Озвучка: ${translation.title}`;
         seriaData.translationId = translation.id;
+        seriaData.translationName = translation.title;
         setUrl();
         return;
     }
@@ -158,6 +321,7 @@ async function setUrl() {
             newSource.src = `https:${data.link}${data.maxQuality}.mp4`;
             videoS.appendChild(newSource);
             videoS.load();
+            console.log("set url");
             console.log(`https:${data.link}${data.maxQuality}.mp4`);
             console.log(data.maxQuality);
         } catch (e) {
@@ -170,10 +334,8 @@ searchInput.addEventListener(
     "input",
     debounce(async (e) => {
         const title = encodeURIComponent(e.target.value);
-        console.log(JSON.stringify({ title }));
         const results = await fetch(`/api/anime/search?title=${title}`);
         const data = await results.json();
-        console.log(data);
         renderResultsList(data);
     }, 300)
 );
@@ -204,6 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentTheme = window.localStorage.getItem("theme");
     if (!currentTheme) {
         window.localStorage.setItem("theme", "light");
+        toggleTheme.innerHTML = lightSvg;
     }
     if (currentTheme == "light") {
         toggleTheme.innerHTML = darkSvg;
@@ -226,3 +389,94 @@ toggleTheme.addEventListener("click", () => {
         window.localStorage.setItem("theme", "light");
     }
 });
+
+let lastTimeUpdateTimeCode = 0;
+videoS.addEventListener("timeupdate", () => {
+    const now = new Date();
+    if (now - lastTimeUpdateTimeCode > 10000) {
+        const animeData = ANIME_PLAYER_DATA.continueWatching.find(
+            (item) => item.shikimoriId == seriaData.shikimoriId
+        );
+        if (animeData) {
+            const currentTime = Math.floor(videoS.currentTime);
+            animeData.timeCode.hour = Math.floor(currentTime / 3600);
+            animeData.timeCode.minute = Math.floor((currentTime % 3600) / 60);
+            animeData.timeCode.second = currentTime % 60;
+            console.log(animeData);
+        }
+        lastTimeUpdateTimeCode = now;
+    }
+});
+
+videoS.addEventListener("loadeddata", () => {
+    const animeData = ANIME_PLAYER_DATA.continueWatching.find(
+        (item) => item.shikimoriId == seriaData.shikimoriId
+    );
+    if (!animeData) {
+        const newAnimeData = {
+            title: seriaData.title,
+            shikimoriId: seriaData.shikimoriId,
+            translationsId: seriaData.translationId,
+            translationsName: seriaData.translationName,
+            seriaNum: seriaData.seriaNum,
+            startedWatching: true,
+            viewed: false,
+            timeCode: {
+                fullTimeSeconds: Math.floor(videoS.duration),
+                hour: 0,
+                minute: 0,
+                second: 0,
+            },
+        };
+        ANIME_PLAYER_DATA.continueWatching.push(newAnimeData);
+    } else {
+        animeData.seriaNum = seriaData.seriaNum;
+        animeData.translationsId = seriaData.translationId;
+        animeData.translationsName = seriaData.translationName;
+    }
+});
+
+window.addEventListener("beforeunload", () => {
+    if (!deepEqualObject(LOADED_DATA, ANIME_PLAYER_DATA)) {
+        uploadData(ANIME_PLAYER_DATA);
+        LOADED_DATA = JSON.parse(JSON.stringify(ANIME_PLAYER_DATA));
+        console.log(ANIME_PLAYER_DATA);
+    }
+});
+window.addEventListener("pagehide", (e) => {
+    if (e.persisted && !deepEqualObject(LOADED_DATA, ANIME_PLAYER_DATA)) {
+        uploadData(ANIME_PLAYER_DATA);
+        LOADED_DATA = JSON.parse(JSON.stringify(ANIME_PLAYER_DATA));
+        console.log(ANIME_PLAYER_DATA);
+    }
+});
+document.addEventListener("visibilitychange", () => {
+    if (
+        document.visibilityState &&
+        !deepEqualObject(LOADED_DATA, ANIME_PLAYER_DATA)
+    ) {
+        uploadData(ANIME_PLAYER_DATA);
+        LOADED_DATA = JSON.parse(JSON.stringify(ANIME_PLAYER_DATA));
+        console.log(ANIME_PLAYER_DATA);
+    }
+});
+function deepEqualObject(obj1, obj2) {
+    if (obj1 === obj2) return true;
+    if (
+        typeof obj1 !== "object" ||
+        obj1 === null ||
+        typeof obj2 !== "object" ||
+        obj2 === null
+    ) {
+        return false;
+    }
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) return false;
+    for (const key of keys1) {
+        if (!keys2.includes(key) || !deepEqualObject(obj1[key], obj2[key])) {
+            return false;
+        }
+    }
+    return true;
+}

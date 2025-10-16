@@ -1,21 +1,25 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 * {
     margin: 0;
-    color: var(--text-color);
     font-family: "Inter";
 }
 body {
     background: #fbe6fc;
+    color: var(--text-color);
     --bg-section-color: #faf2ff;
     --bg-component-color: #eac5ec;
+    --bg-component-color-hover: #f2d5f3;
     --text-color: #161219;
+    --text-color-opt: #806b83;
     --shadow-color: #eac5ec;
 }
 body.dark-theme {
     background: #1d1920;
     --bg-section-color: #161219;
     --bg-component-color: #4a294a;
+    --bg-component-color-hover: #583858;
     --text-color: #faf2ff;
+    --text-color-opt: #a28da4;
     --shadow-color: #161219;
 }
 
@@ -74,6 +78,7 @@ body.dark-theme {
     outline: none;
     margin-bottom: 3px;
     padding-left: 8px;
+    color: var(--text-color);
 }
 
 .search-input:-webkit-autofill,
@@ -107,6 +112,7 @@ body.dark-theme {
     align-items: center;
     gap: 5px;
     transition: 100ms;
+    color: var(--text-color);
 }
 
 @media (hover: hover) {
@@ -202,4 +208,133 @@ body.dark-theme {
 }
 .seria-button:active {
     background: #ff799f;
+}
+
+.layout {
+    position: relative;
+    display: flex;
+    margin-top: 20px;
+    background: var(--bg-section-color);
+    padding: 10px;
+    border-radius: 20px;
+    box-shadow: 0 0 10px var(--shadow-color);
+    margin-bottom: 20px;
+}
+.continue-watching-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.continue-watching-container {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    overflow: auto;
+    scroll-snap-type: x mandatory;
+}
+.continue-watching-item {
+    width: 175px;
+    height: 300px;
+    border-radius: 10px;
+    background-color: var(--bg-component-color);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-bottom: 5px;
+    scroll-snap-align: start;
+}
+@media (hover: hover) {
+    .continue-watching-item:hover img {
+        transform: scale(1.1);
+    }
+}
+@media (hover: none) {
+    .continue-watching-item:active img {
+        transform: scale(1.1);
+    }
+}
+.seria-button:active {
+    background: #ff799f;
+}
+.continue-watching-img-container {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.continue-watching-img-container img {
+    width: 100%;
+    object-fit: cover;
+    transition: transform 200ms;
+}
+.continue-watching-img-container .img-overlay {
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(transparent, var(--bg-component-color));
+    left: 0;
+    bottom: 0;
+}
+.continue-watching-container::-webkit-scrollbar {
+    height: 10px;
+}
+.continue-watching-container::-webkit-scrollbar-thumb {
+    background: var(--bg-component-color);
+    border: none;
+    background-clip: content-box;
+    border-radius: 15px;
+}
+.continue-watching-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+.continue-watching-container::-webkit-scrollbar-button:vertical:start:decrement,
+.continue-watching-container::-webkit-scrollbar-button:vertical:end:increment {
+    appearance: none;
+}
+.continue-watching-item-info {
+    position: absolute;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    top: 170px;
+}
+.continue-watching-item-info-title-wrapper {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.continue-watching-item-info-title {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-height: 50px;
+    width: 100%;
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    text-align: center;
+}
+.continue-watching-item-info-settings {
+    color: var(--text-color-opt);
+}
+.continue-watching-item-info-translations {
+    margin-bottom: 10px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 35px;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.time-state {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 5px;
 }

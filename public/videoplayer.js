@@ -95,7 +95,6 @@ const startPlayButton = document.querySelector("#start-play-button");
 const startPlayContainer = document.querySelector("#start-play-container");
 let videoIsStarted = false;
 startPlayButton.addEventListener("click", () => {
-    video.load();
     videoPlay();
     startPlayContainer.style.display = "none";
     videoIsStarted = true;
