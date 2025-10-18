@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const continueWatching = ANIME_PLAYER_DATA.continueWatching;
 
     let isNewData = false;
+    let isDataExistForRender = false;
     console.log(data);
 
     if (continueWatching.length > 0) {
@@ -57,11 +58,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     console.log(continueWatching[i]);
                 } else continue;
             }
+            isDataExistForRender = true;
             await createCWCard(continueWatching[i]);
         }
-        console.log("Конец перебора списка");
         if (isNewData) {
             uploadData(ANIME_PLAYER_DATA);
+        }
+        if (!isDataExistForRender) {
+            ContinueWatchingContainer.textContent = "Ничего не найдено";
         }
     } else {
         ContinueWatchingContainer.textContent = "Ничего не найдено";
@@ -390,6 +394,8 @@ toggleTheme.addEventListener("click", () => {
     }
 });
 
+// VIDEO HANDLE
+
 let lastTimeUpdateTimeCode = 0;
 videoS.addEventListener("timeupdate", () => {
     const now = new Date();
@@ -399,6 +405,10 @@ videoS.addEventListener("timeupdate", () => {
         );
         if (animeData) {
             const currentTime = Math.floor(videoS.currentTime);
+            if (currentTime > videoS.duration - 120) {
+                animeData.viewed = true;
+                animeData.startedWatching = false;
+            }
             animeData.timeCode.hour = Math.floor(currentTime / 3600);
             animeData.timeCode.minute = Math.floor((currentTime % 3600) / 60);
             animeData.timeCode.second = currentTime % 60;
@@ -430,6 +440,7 @@ videoS.addEventListener("loadeddata", () => {
         };
         ANIME_PLAYER_DATA.continueWatching.push(newAnimeData);
     } else {
+        animeData.startedWatching = true;
         animeData.seriaNum = seriaData.seriaNum;
         animeData.translationsId = seriaData.translationId;
         animeData.translationsName = seriaData.translationName;
