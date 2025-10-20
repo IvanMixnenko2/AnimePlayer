@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ANIME_PLAYER_DATA = data;
     LOADED_DATA = JSON.parse(JSON.stringify(data));
     const continueWatching = ANIME_PLAYER_DATA.continueWatching;
+    continueWatching.sort((a, b) => b.lastUpdate - a.lastUpdate);
 
     let isNewData = false;
     let isDataExistForRender = false;
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (continueWatching.length > 0) {
         for (let i = 0; i < continueWatching.length; i++) {
+            let isBeginRender = false;
             if (continueWatching[i].viewed) {
                 const translations = await fetch(
                     `/api/anime/info?shikimori_id=${continueWatching[i].shikimoriId}`
@@ -50,6 +52,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 console.log(continueWatching[i].seriaNum, lastSeria);
                 if (continueWatching[i].seriaNum < lastSeria) {
                     console.log("ЕСТЬ СЛЕДУЮЩАЯ СЕРИЯ");
+                    isBeginRender = true;
+                    continueWatching[i].lastUpdate = Date.now();
                     isNewData = true;
                     ANIME_PLAYER_DATA.continueWatching[i].seriaNum = (
                         parseInt(continueWatching[i].seriaNum) + 1
@@ -59,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 } else continue;
             }
             isDataExistForRender = true;
-            await createCWCard(continueWatching[i]);
+            await createCWCard(continueWatching[i], isBeginRender);
         }
         if (isNewData) {
             uploadData(ANIME_PLAYER_DATA);
@@ -72,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-async function createCWCard(data) {
+async function createCWCard(data, isBeginRender) {
     const container = document.createElement("div");
     container.className = "continue-watching-item";
     container.addEventListener("click", () => {});
@@ -140,6 +144,10 @@ async function createCWCard(data) {
     </div>
     <div class="time-state" style="background: linear-gradient(to right, #ff6792 ${viewedPercent}%, transparent ${viewedPercent}%);"></div>
     `;
+    if (isBeginRender) {
+        ContinueWatchingContainer.prepend(container);
+        return;
+    }
     ContinueWatchingContainer.appendChild(container);
 }
 
@@ -412,6 +420,7 @@ videoS.addEventListener("timeupdate", () => {
             animeData.timeCode.hour = Math.floor(currentTime / 3600);
             animeData.timeCode.minute = Math.floor((currentTime % 3600) / 60);
             animeData.timeCode.second = currentTime % 60;
+            animeData.lastUpdate = Date.now();
             console.log(animeData);
         }
         lastTimeUpdateTimeCode = now;
@@ -437,6 +446,7 @@ videoS.addEventListener("loadeddata", () => {
                 minute: 0,
                 second: 0,
             },
+            lastUpdate: Date.now(),
         };
         ANIME_PLAYER_DATA.continueWatching.push(newAnimeData);
     } else {
